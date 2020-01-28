@@ -72,6 +72,46 @@ trap_init(void)
 	extern struct Segdesc gdt[];
 
 	// LAB 3: Your code here.
+	extern int th_divide; //这里其实都是由汇编定义的函数，也可以用void th_divide()这样的形式
+    extern int th_debug;
+    extern int th_nmi;
+    extern int th_brkpt;
+    extern int th_oflow;
+    extern int th_bound;
+    extern int th_illop;
+    extern int th_device;
+    extern int th_dblflt;
+    extern int th_tss;
+    extern int th_segnp;
+    extern int th_stack;
+    extern int th_gpflt;
+    extern int th_pgflt;
+    extern int th_fperr;
+    extern int th_align;
+    extern int th_mchk;
+    extern int th_simderr;
+	extern int th_syscall;
+
+    SETGATE(idt[T_DIVIDE], 1, GD_KT, &th_divide, 0);
+    SETGATE(idt[T_DEBUG], 0, GD_KT, &th_debug, 3);
+    SETGATE(idt[T_NMI], 0, GD_KT, &th_nmi, 0);
+    SETGATE(idt[T_BRKPT], 0, GD_KT, &th_brkpt, 3);
+    SETGATE(idt[T_OFLOW], 1, GD_KT, &th_oflow, 0);
+    SETGATE(idt[T_BOUND], 1, GD_KT, &th_bound, 0);
+    SETGATE(idt[T_ILLOP], 1, GD_KT, &th_illop, 0);
+    SETGATE(idt[T_DEVICE], 1, GD_KT, &th_device, 0);
+    SETGATE(idt[T_DBLFLT], 1, GD_KT, &th_dblflt, 0);
+    SETGATE(idt[T_TSS], 1, GD_KT, &th_tss, 0);
+    SETGATE(idt[T_SEGNP], 1, GD_KT, &th_segnp, 0);
+    SETGATE(idt[T_STACK], 1, GD_KT, &th_stack, 0);
+    SETGATE(idt[T_GPFLT], 1, GD_KT, &th_gpflt, 0);
+    SETGATE(idt[T_PGFLT], 0, GD_KT, &th_pgflt, 0);
+    SETGATE(idt[T_FPERR], 1, GD_KT, &th_fperr, 0);
+    SETGATE(idt[T_ALIGN], 1, GD_KT, &th_align, 0);
+    SETGATE(idt[T_MCHK], 1, GD_KT, &th_mchk, 0);
+    SETGATE(idt[T_SIMDERR], 1, GD_KT, &th_simderr, 0);
+
+	SETGATE(idt[T_SYSCALL], 0, GD_KT, &th_syscall, 3);
 
 	// Per-CPU setup 
 	trap_init_percpu();
@@ -176,6 +216,19 @@ trap_dispatch(struct Trapframe *tf)
 {
 	// Handle processor exceptions.
 	// LAB 3: Your code here.
+	if (tf->tf_trapno == T_PGFLT) {
+        page_fault_handler(tf);
+        return;
+    }
+	if (tf->tf_trapno == T_BRKPT) {
+        monitor(tf);
+        return;
+    }
+	if (tf->tf_trapno == T_SYSCALL) {
+        tf->tf_regs.reg_eax = syscall(tf->tf_regs.reg_eax, tf->tf_regs.reg_edx, tf->tf_regs.reg_ecx,
+            tf->tf_regs.reg_ebx, tf->tf_regs.reg_edi, tf->tf_regs.reg_esi);
+        return;
+    }
 
 	// Handle spurious interrupts
 	// The hardware sometimes raises these because of noise on the
@@ -271,6 +324,8 @@ page_fault_handler(struct Trapframe *tf)
 	// Handle kernel-mode page faults.
 
 	// LAB 3: Your code here.
+	if ((tf->tf_cs & 3) == 0)
+		panic("Page Fault in Kernel-Mode at %08x.\n", fault_va);
 
 	// We've already handled kernel-mode exceptions, so if we get here,
 	// the page fault happened in user mode.
