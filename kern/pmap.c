@@ -266,6 +266,11 @@ mem_init_mp(void)
 	//     Permissions: kernel RW, user NONE
 	//
 	// LAB 4: Your code here:
+	for(int i = 0 ; i < NCPU ; i ++) {
+		uintptr_t va = KSTACKTOP - i * (KSTKSIZE + KSTKGAP);
+		boot_map_region(kern_pgdir, va - KSTKSIZE, KSTKSIZE, 
+			PADDR(percpu_kstacks[i]), PTE_W | PTE_P);
+	}
 
 }
 
@@ -311,6 +316,10 @@ page_init(void)
 			pages[i].pp_ref = 1;
 			pages[i].pp_link = NULL;
 		} else if(i * PGSIZE >= IOPHYSMEM && i * PGSIZE <= PADDR(boot_alloc(0))) {
+			pages[i].pp_ref = 1;
+			pages[i].pp_link = NULL;
+		} else if(i * PGSIZE == MPENTRY_PADDR) {  
+            //这里是标记MPENTRY_PADDR所在的物理页
 			pages[i].pp_ref = 1;
 			pages[i].pp_link = NULL;
 		} else {
@@ -596,7 +605,14 @@ mmio_map_region(physaddr_t pa, size_t size)
 	// Hint: The staff solution uses boot_map_region.
 	//
 	// Your code here:
-	panic("mmio_map_region not implemented");
+	//panic("mmio_map_region not implemented");
+	size = ROUNDUP(size, PGSIZE);
+	pa = ROUNDDOWN(pa, PGSIZE);
+	if((base + size > MMIOLIM) || (base + size < base))
+		panic("Overflow in mmio region");
+	boot_map_region(kern_pgdir, base, size, pa, PTE_PCD | PTE_PWT | PTE_W);
+	base += size; //base是全局变量，同时它将保存mmio中的可用空间的首地址
+	return (void*)(base - size);
 }
 
 static uintptr_t user_mem_check_addr;
