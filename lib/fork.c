@@ -68,23 +68,18 @@ duppage(envid_t envid, unsigned pn)
 	int r;
 
 	// LAB 4: Your code here.
-	void* va = (void *) (pn * PGSIZE);
-	pte_t pte = uvpt[PGNUM(va)];
-
-	if((pte & PTE_W) || (pte & PTE_COW))
-	{
-		//因为envid2env根据envid返回环境，而envid是0时，则返回当前环境，所以使用0代表当前环境
-		//将当前环境的va地址所在的页复制到envid环境的地址空间va所在的页
-		if((r = sys_page_map(0, va, envid, va, PTE_U | PTE_COW | PTE_P)) < 0)
-			panic("Page Map Failed: %e", r);
-		// 把当前环境的页表权限改变为写时复制
-		if((r = sys_page_map(0, va, 0, va, PTE_U | PTE_COW | PTE_P)) < 0)
-			panic("Page Map Failed: %e", r);
-	} else { // 当va所在的页的没有写权限时，只需要简单复制
-		if((r = sys_page_map(0, va, envid, va, PTE_U | PTE_P)) < 0)
-			panic("Page Map Failed: %e", r);
-	}
-	return 0;
+    void *addr = (void*) (pn * PGSIZE);
+    if (uvpt[pn] & PTE_SHARE) {
+        sys_page_map(0, addr, envid, addr, PTE_SYSCALL);        //对于标识为PTE_SHARE的页，拷贝映射关系，并且两个进程都有读写权限
+    } else if ((uvpt[pn] & PTE_W) || (uvpt[pn] & PTE_COW)) { //对于UTOP以下的可写的或者写时拷贝的页，拷贝映射关系的同时，需要同时标记当前进程和子进程的页表项为PTE_COW
+        if ((r = sys_page_map(0, addr, envid, addr, PTE_COW|PTE_U|PTE_P)) < 0)
+            panic("sys_page_map：%e", r);
+        if ((r = sys_page_map(0, addr, 0, addr, PTE_COW|PTE_U|PTE_P)) < 0)
+            panic("sys_page_map：%e", r);
+    } else {
+        sys_page_map(0, addr, envid, addr, PTE_U|PTE_P);    //对于只读的页，只需要拷贝映射关系即可
+    }
+    return 0;
 }
 
 //

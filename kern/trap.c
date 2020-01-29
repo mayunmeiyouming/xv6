@@ -92,24 +92,24 @@ trap_init(void)
     extern int th_simderr;
 	extern int th_syscall;
 
-    SETGATE(idt[T_DIVIDE], 1, GD_KT, &th_divide, 0);
+    SETGATE(idt[T_DIVIDE], 0, GD_KT, &th_divide, 0);
     SETGATE(idt[T_DEBUG], 0, GD_KT, &th_debug, 3);
     SETGATE(idt[T_NMI], 0, GD_KT, &th_nmi, 0);
     SETGATE(idt[T_BRKPT], 0, GD_KT, &th_brkpt, 3);
-    SETGATE(idt[T_OFLOW], 1, GD_KT, &th_oflow, 0);
-    SETGATE(idt[T_BOUND], 1, GD_KT, &th_bound, 0);
-    SETGATE(idt[T_ILLOP], 1, GD_KT, &th_illop, 0);
-    SETGATE(idt[T_DEVICE], 1, GD_KT, &th_device, 0);
-    SETGATE(idt[T_DBLFLT], 1, GD_KT, &th_dblflt, 0);
-    SETGATE(idt[T_TSS], 1, GD_KT, &th_tss, 0);
-    SETGATE(idt[T_SEGNP], 1, GD_KT, &th_segnp, 0);
-    SETGATE(idt[T_STACK], 1, GD_KT, &th_stack, 0);
-    SETGATE(idt[T_GPFLT], 1, GD_KT, &th_gpflt, 0);
+    SETGATE(idt[T_OFLOW], 0, GD_KT, &th_oflow, 0);
+    SETGATE(idt[T_BOUND], 0, GD_KT, &th_bound, 0);
+    SETGATE(idt[T_ILLOP], 0, GD_KT, &th_illop, 0);
+    SETGATE(idt[T_DEVICE], 0, GD_KT, &th_device, 0);
+    SETGATE(idt[T_DBLFLT], 0, GD_KT, &th_dblflt, 0);
+    SETGATE(idt[T_TSS], 0, GD_KT, &th_tss, 0);
+    SETGATE(idt[T_SEGNP], 0, GD_KT, &th_segnp, 0);
+    SETGATE(idt[T_STACK], 0, GD_KT, &th_stack, 0);
+    SETGATE(idt[T_GPFLT], 0, GD_KT, &th_gpflt, 0);
     SETGATE(idt[T_PGFLT], 0, GD_KT, &th_pgflt, 0);
-    SETGATE(idt[T_FPERR], 1, GD_KT, &th_fperr, 0);
-    SETGATE(idt[T_ALIGN], 1, GD_KT, &th_align, 0);
-    SETGATE(idt[T_MCHK], 1, GD_KT, &th_mchk, 0);
-    SETGATE(idt[T_SIMDERR], 1, GD_KT, &th_simderr, 0);
+    SETGATE(idt[T_FPERR], 0, GD_KT, &th_fperr, 0);
+    SETGATE(idt[T_ALIGN], 0, GD_KT, &th_align, 0);
+    SETGATE(idt[T_MCHK], 0, GD_KT, &th_mchk, 0);
+    SETGATE(idt[T_SIMDERR], 0, GD_KT, &th_simderr, 0);
 
 	SETGATE(idt[T_SYSCALL], 0, GD_KT, &th_syscall, 3);
 
@@ -283,6 +283,16 @@ trap_dispatch(struct Trapframe *tf)
 
 	// Handle keyboard and serial interrupts.
 	// LAB 5: Your code here.
+	if(tf->tf_trapno == IRQ_OFFSET + IRQ_KBD)
+	{
+		kbd_intr();
+		return;
+	}
+	if(tf->tf_trapno == IRQ_OFFSET + IRQ_SERIAL)
+	{
+		serial_intr();
+		return;
+	}
 
 	// Unexpected trap: The user process or the kernel has a bug.
 	print_trapframe(tf);
