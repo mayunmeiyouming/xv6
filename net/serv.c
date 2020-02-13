@@ -356,8 +356,8 @@ umain(int argc, char **argv)
 
 	// lwIP requires a user threading library; start the library and jump
 	// into a thread to continue initialization.
-	thread_init();
-	thread_create(0, "main", tmain, 0);
-	thread_yield();
+	thread_init();//初始化线程队列，线程队列中包含头指针和尾指针
+	thread_create(0, "main", tmain, 0);//创建一个名为main的线程上下文
+	thread_yield();//队列循环执行
 	// never coming here!
 }

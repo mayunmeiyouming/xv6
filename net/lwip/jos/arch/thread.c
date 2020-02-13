@@ -167,13 +167,13 @@ thread_yield(void) {
 	return;
 
     if (cur_tc) {
-	if (jos_setjmp(&cur_tc->tc_jb) != 0)
+	if (jos_setjmp(&cur_tc->tc_jb) != 0)//设置硬件上下文
 	    return;
 	threadq_push(&thread_queue, cur_tc);
     }
 
     cur_tc = next_tc;
-    jos_longjmp(&cur_tc->tc_jb, 1);
+    jos_longjmp(&cur_tc->tc_jb, 1);//保存硬件上下文
 }
 
 static void
