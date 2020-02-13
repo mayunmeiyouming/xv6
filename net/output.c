@@ -1,7 +1,9 @@
 #include "ns.h"
 
 extern union Nsipc nsipcbuf;
-
+/* 输出环境的作用就是将网络核心环境共享给输出环境的数据存入在网卡输出队列
+ * 通过DMA，网卡可以直接访问物理内存，将数据发送出去
+ */
 void
 output(envid_t ns_envid)
 {

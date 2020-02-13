@@ -1,7 +1,9 @@
 #include "ns.h"
 
 extern union Nsipc nsipcbuf;
-
+/* 输入环境的作用就是将网卡接收队列的数据存放在struct jif_pkt中，
+ * 然后通过IPC将数据共享个网络核心环境
+ */
 void
 input(envid_t ns_envid)
 {

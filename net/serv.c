@@ -322,7 +322,8 @@ umain(int argc, char **argv)
 	timer_envid = fork();
 	if (timer_envid < 0)
 		panic("error forking");
-	else if (timer_envid == 0) {
+	else if (timer_envid == 0) {  //计数器环境
+	    //每250ms向网络环境发送一次超时请求
 		timer(ns_envid, TIMER_INTERVAL);
 		return;
 	}
@@ -332,7 +333,10 @@ umain(int argc, char **argv)
 	input_envid = fork();
 	if (input_envid < 0)
 		panic("error forking");
-	else if (input_envid == 0) {
+	else if (input_envid == 0) {  //输入环境
+	    /* 输入环境的作用就是将网卡接收队列的数据存放在struct jif_pkt中，
+         * 然后通过IPC将数据共享个网络核心环境
+         */
 		input(ns_envid);
 		return;
 	}
@@ -342,7 +346,10 @@ umain(int argc, char **argv)
 	output_envid = fork();
 	if (output_envid < 0)
 		panic("error forking");
-	else if (output_envid == 0) {
+	else if (output_envid == 0) {  //输出环境
+	    /* 输出环境的作用就是将网络核心环境共享给输出环境的数据存入在网卡输出队列
+         * 通过DMA，网卡可以直接访问物理内存，将数据发送出去
+         */
 		output(ns_envid);
 		return;
 	}
