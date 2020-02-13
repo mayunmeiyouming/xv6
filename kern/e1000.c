@@ -16,8 +16,10 @@ int attachfn_enable(struct pci_func *pcif) {
         tx_send[i].cmd = TXD_CMD_RS | TXD_CMD_EOP;
     }
 
-    bar_va = mmio_map_region(pcif->reg_base[0], pcif->reg_size[0]); //为reg_base分配内存
-    uint32_t *status_reg = (uint32_t *)(bar_va + 0x8); //查看var_va的从偏移量8开始的值
+    //为reg_base的物理地址映射虚拟内存
+    bar_va = mmio_map_region(pcif->reg_base[0], pcif->reg_size[0]); 
+    uint32_t *status_reg = (uint32_t *)(bar_va + 0x8); 
+	//查看状态寄存器的值是否是0x80080783
     assert(*status_reg == 0x80080783);
 
     // send
@@ -46,7 +48,7 @@ int attachfn_enable(struct pci_func *pcif) {
 	{
 		struct PageInfo *pp = page_alloc(0);
 		if(!pp)
-			panic("fail to alloc memory for e1000 recv\n");
+			panic("fail to alloc memory for e1000 receiver\n");
 		tx_receive[i].addr = page2pa(pp);
 	}
 	uint32_t rctl = (RCTL_EN) | (RCTL_BAM) | (RCTL_BSIZE) | (RCTL_BSEX) | (RCTL_SECRC);

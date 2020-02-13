@@ -613,7 +613,7 @@ mmio_map_region(physaddr_t pa, size_t size)
 	if((base + size > MMIOLIM) || (base + size < base))
 		panic("Overflow in mmio region");
 	boot_map_region(kern_pgdir, base, size, pa, PTE_PCD | PTE_PWT | PTE_W);
-	base += size; //base是全局变量，同时它将保存mmio中的可用空间的首地址
+	base += size; //base是全局变量，同时它将保存mmio中的可用空间的首地址，base是虚拟内存
 	return (void*)(base - size);
 }
 
