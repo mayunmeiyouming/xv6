@@ -147,7 +147,7 @@ send_header_fin(struct http_request *req)
 	return 0;
 }
 
-// given a request, this function creates a struct http_request
+// 解析http请求，将解析出来的数据存放在struct http_request *req中，但是这里只解析了请求行
 static int
 http_request_parse(struct http_request *req, char *request)
 {
