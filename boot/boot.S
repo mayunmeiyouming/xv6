@@ -27,11 +27,11 @@ start:
   #   1MB wrap around to zero by default.  This code undoes this.
 seta20.1:
   inb     $0x64,%al               # Wait for not busy
-  testb   $0x2,%al
+  testb   $0x2,%al                # bit 1 Input buffer status (0 = empty, 1 = full) 
   jnz     seta20.1
 
   movb    $0xd1,%al               # 0xd1 -> port 0x64
-  outb    %al,$0x64
+  outb    %al,$0x64               # 告诉键盘控制器读取Output缓冲区
 
 seta20.2:
   inb     $0x64,%al               # Wait for not busy
@@ -39,7 +39,7 @@ seta20.2:
   jnz     seta20.2
 
   movb    $0xdf,%al               # 0xdf -> port 0x60
-  outb    %al,$0x60
+  outb    %al,$0x60               # 向Output缓冲区写数据0xdf开启A20，0xdd关闭aA20
 
   # Switch from real to protected mode, using a bootstrap GDT
   # and segment translation that makes virtual addresses 
