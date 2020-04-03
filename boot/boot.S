@@ -48,7 +48,7 @@ seta20.2:
   lgdt    gdtdesc                 # 加载gdt描述符表
   movl    %cr0, %eax
   orl     $CR0_PE_ON, %eax
-  movl    %eax, %cr0
+  movl    %eax, %cr0              # 开启保护模式
   
   # Jump to next instruction, but in 32-bit code segment.
   # Switches processor into 32-bit mode.
@@ -73,7 +73,7 @@ spin:
   jmp spin
 
 # Bootstrap GDT
-.p2align 2                                # force 4 byte alignment
+.p2align 2                                # force 4 byte alignment, 每个条目都是8字节
 gdt:
   SEG_NULL				# null seg
   SEG(STA_X|STA_R, 0x0, 0xffffffff)	# code seg
